@@ -1,0 +1,61 @@
+extract_and_analyze_leads:
+  description: >
+    Extract all leads from the Notion CRM database and analyze them based on the
+    alert criteria: {alert_criteria}.
+
+    Classify each lead into one of three priority levels:
+    - 🔴 CRITICAL: 21+ days since last contact
+    - 🟡 WARNING: 14-20 days since last contact
+    - 🟠 ATTENTION: 7-13 days since last contact
+
+    For each priority level, organize leads by days since contact (highest first).
+    Include the following information for each lead:
+    - Lead name
+    - Days since last contact
+    - Last contact date
+    - Company (if available)
+    - Direct Notion URL for quick access
+
+  expected_output: >
+    A structured JSON report with three arrays (critical, warning, attention),
+    each containing lead objects with: name, days_since_contact, last_contact,
+    company, url. Also include a summary with total counts per priority level.
+
+  agent: lead_analyzer
+
+format_and_send_alerts:
+  description: >
+    Take the analyzed leads data and create a beautifully formatted Telegram message
+    for the {team_name} sales team.
+
+    Format requirements:
+    - Start with team greeting and date
+    - Show summary statistics (total alerts by priority)
+    - Group alerts by priority level with appropriate emojis
+    - For each lead show: Name, Days, Last Contact, Company (if available)
+    - Include clickable Notion links
+    - If no alerts, send encouraging "All clear! ✅" message
+    - Use Markdown formatting for readability
+    - Keep it concise but actionable
+
+    Example format:
+    ```
+    🚨 *CRM Lead Alerts - {team_name}*
+    📅 [Date]
+
+    📊 *Summary*
+    • 🔴 Critical: X leads
+    • 🟡 Warning: Y leads
+    • 🟠 Attention: Z leads
+
+    🔴 *CRITICAL - 21+ Days*
+    1. *Lead Name* - Company
+       📅 25 days | Last: 2024-12-10
+       🔗 [View in Notion](url)
+    ```
+
+  expected_output: >
+    Success confirmation message indicating the alert was sent to Telegram,
+    including the number of leads alerted and priority breakdown.
+
+  agent: notification_formatter
