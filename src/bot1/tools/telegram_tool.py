@@ -17,6 +17,7 @@ class TelegramNotificationTool(BaseTool):
 
     bot_token: str = Field(default_factory=lambda: os.getenv("TELEGRAM_BOT_TOKEN", ""))
     group_id: str = Field(default_factory=lambda: os.getenv("TELEGRAM_GROUP_ID", ""))
+    thread_id: str = Field(default_factory=lambda: os.getenv("TELEGRAM_THREAD_ID", ""))
 
     def _run(self, message: str) -> str:
         """
@@ -41,6 +42,10 @@ class TelegramNotificationTool(BaseTool):
                 "parse_mode": "HTML",
                 "disable_web_page_preview": True
             }
+
+            # Add thread_id if sending to a topic/subtopic
+            if self.thread_id:
+                payload["message_thread_id"] = int(self.thread_id)
 
             response = requests.post(url, json=payload, timeout=10)
 
