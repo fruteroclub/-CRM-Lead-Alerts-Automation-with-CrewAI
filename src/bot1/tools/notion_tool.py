@@ -57,13 +57,20 @@ class NotionCRMTool(BaseTool):
                     "url": page.get("url", ""),
                 }
 
-                # Extract Customer Name (title property)
-                customer_prop = properties.get("Customer", {})
-                title_content = customer_prop.get("title", [])
+                # Extract Point of Contact (person name)
+                poc_prop = properties.get("Point of Contact", {})
+
+                # Try title property first
+                title_content = poc_prop.get("title", [])
                 if title_content:
                     lead_data["name"] = title_content[0].get("plain_text", "Sin nombre")
                 else:
-                    lead_data["name"] = "Sin nombre"
+                    # Try rich_text
+                    rich_text = poc_prop.get("rich_text", [])
+                    if rich_text:
+                        lead_data["name"] = rich_text[0].get("plain_text", "Sin nombre")
+                    else:
+                        lead_data["name"] = "Sin nombre"
 
                 # Extract Last Contact Date
                 last_contact_prop = properties.get("Last Contact Date", {})
@@ -100,26 +107,33 @@ class NotionCRMTool(BaseTool):
                 email_content = email_prop.get("email") or ""
                 lead_data["email"] = email_content
 
-                # Extract Industry
-                industry_prop = properties.get("Industry", {})
-                industry_select = industry_prop.get("select")
-                if industry_select:
-                    lead_data["company"] = industry_select.get("name", "")
+                # Extract Client (company/organization)
+                client_prop = properties.get("Client", {})
+                # Try rich_text first
+                client_text = client_prop.get("rich_text", [])
+                if client_text:
+                    lead_data["company"] = client_text[0].get("plain_text", "")
                 else:
-                    # Try as rich_text
-                    industry_text = industry_prop.get("rich_text", [])
-                    if industry_text:
-                        lead_data["company"] = industry_text[0].get("plain_text", "")
+                    # Try title
+                    client_title = client_prop.get("title", [])
+                    if client_title:
+                        lead_data["company"] = client_title[0].get("plain_text", "")
                     else:
                         lead_data["company"] = ""
 
-                # Extract Contact Person
-                contact_prop = properties.get("Contact Person", {})
+                # Extract Contact Person / Point of Contact
+                contact_prop = properties.get("Point of Contact", {}) or properties.get("Contact Person", {})
+                # Try rich_text first
                 contact_text = contact_prop.get("rich_text", [])
                 if contact_text:
                     lead_data["contact_person"] = contact_text[0].get("plain_text", "")
                 else:
-                    lead_data["contact_person"] = ""
+                    # Try title property
+                    contact_title = contact_prop.get("title", [])
+                    if contact_title:
+                        lead_data["contact_person"] = contact_title[0].get("plain_text", "")
+                    else:
+                        lead_data["contact_person"] = ""
 
                 # Extract Telegram
                 telegram_prop = properties.get("Telegram", {})
